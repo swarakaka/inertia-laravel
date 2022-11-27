@@ -104,6 +104,25 @@ class ResponseFactory
         );
     }
 
+    public function page($component, $props = [])
+    {
+        if ($props instanceof Arrayable) {
+            $props = $props->toArray();
+        }
+
+        return new Response(
+            $component,
+            array_merge($this->sharedProps, $props),
+            $this->rootView,
+            $this->getVersion()
+        );
+    }
+
+    public function dialog($component, $props = [])
+    {
+        return $this->page($component, $props)->dialog();
+    }
+
     /**
      * @param  string|RedirectResponse  $url
      */

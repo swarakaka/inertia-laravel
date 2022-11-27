@@ -1,4 +1,4 @@
-# Inertia.js Laravel Adapter
+# Inertia.js Laravel Adapter with Dialogs
 
 <p align="left">
   <a href="https://github.com/inertiajs/inertia-laravel/releases">

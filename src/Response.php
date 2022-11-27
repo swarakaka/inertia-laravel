@@ -4,6 +4,7 @@ namespace Inertia;
 
 use Closure;
 use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
@@ -12,7 +13,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Response as ResponseFactory;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Traits\Macroable;
 
 class Response implements Responsable
@@ -24,6 +27,9 @@ class Response implements Responsable
     protected $rootView;
     protected $version;
     protected $viewData = [];
+    protected $dialog;
+    protected $basePageUrl;
+    protected $context = 'default';
 
     /**
      * @param  string  $component
@@ -37,6 +43,34 @@ class Response implements Responsable
         $this->props = $props instanceof Arrayable ? $props->toArray() : $props;
         $this->rootView = $rootView;
         $this->version = $version;
+    }
+
+
+    public function dialog()
+    {
+        $this->dialog = true;
+
+        return $this;
+    }
+    public function context($context)
+    {
+        $this->context = $context;
+
+        return $this;
+    }
+
+    public function basePageRoute(...$args)
+    {
+        $this->basePageUrl = URL::route(...$args);
+
+        return $this;
+    }
+
+    public function basePageUrl($url)
+    {
+        $this->basePageUrl = $url;
+
+        return $this;
     }
 
     /**
@@ -96,12 +130,43 @@ class Response implements Responsable
 
         $props = $this->resolvePropertyInstances($props, $request);
 
-        $page = [
-            'component' => $this->component,
-            'props' => $props,
-            'url' => $request->getBaseUrl().$request->getRequestUri(),
-            'version' => $this->version,
-        ];
+        if ($this->dialog && $this->basePageUrl && $this->context !== $request->header('X-Inertia-Context')) {
+            $kernel = App::make(Kernel::class);
+            $url = $this->basePageUrl;
+
+            do {
+                $response = $kernel->handle(
+                    $this->createBaseRequest($request, $url)
+                );
+
+                if (! $response->headers->get('X-Inertia') && ! $response->isRedirect()) {
+                    return $response;
+                }
+
+                $url = $response->isRedirect() ? $response->getTargetUrl() : null;
+            } while ($url);
+
+            App::instance('request', $request);
+            Facade::clearResolvedInstance('request');
+
+            $page = $response->getData(true);
+            $page['dialog'] = [
+                'component' => $this->component,
+                'props' => $props,
+                'url' => $request->getRequestUri(),
+                'eager' => true,
+            ];
+        } else {
+            $page = [
+                'component' => $this->component,
+                'props' => $props,
+                'url' => $request->getRequestUri(),
+                'version' => $this->version,
+                'type' => $this->dialog ? 'dialog' : 'page',
+                'dialog' => null,
+                'context' => $this->context,
+            ];
+        }
 
         if ($request->header('X-Inertia')) {
             return new JsonResponse($page, 200, ['X-Inertia' => 'true']);
@@ -155,4 +220,19 @@ class Response implements Responsable
 
         return $props;
     }
+
+    public function createBaseRequest(Request $request, $url)
+    {
+        $headers = $request->headers->all();
+        $headers['Accept'] = 'text/html, application/xhtml+xml';
+        $headers['X-Requested-With'] = 'XMLHttpRequest';
+        $headers['X-Inertia'] = true;
+        $headers['X-Inertia-Version'] = $this->version;
+
+        $baseRequest = Request::create($url, 'GET');
+        $baseRequest->headers->replace($headers);
+
+        return $baseRequest;
+    }
+
 }
