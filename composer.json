@@ -1,7 +1,7 @@
 {
-    "name": "inertiajs/inertia-laravel",
+    "name": "swarakaka/inertia-laravel",
     "type": "library",
-    "description": "The Laravel adapter for Inertia.js.",
+    "description": "The Laravel adapter for Inertia.js. with Dialogs feature",
     "keywords": ["laravel", "inertia"],
     "license": "MIT",
     "authors": [
