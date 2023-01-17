@@ -17,5 +17,5 @@
 </p>
 
 ---
-
+### Please note that this Repository is not official, if you want to get the official version please see the inertiajs main website
 Visit [inertiajs.com](https://inertiajs.com/) to learn more.
