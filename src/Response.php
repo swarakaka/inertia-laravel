@@ -132,7 +132,7 @@ class Response implements Responsable
 
         if ($this->dialog && $this->basePageUrl && $this->context !== $request->header('X-Inertia-Context')) {
             $kernel = App::make(Kernel::class);
-            $url = $this->basePageUrl ?? redirect()->intended();
+            $url = $this->basePageUrl;
 
             do {
                 $response = $kernel->handle(
