@@ -150,15 +150,12 @@ class Response implements Responsable
             Facade::clearResolvedInstance('request');
 
             $page = $response->getData(true);
-            $dialog = [
+            $page['dialog'] = [
                 'component' => $this->component,
                 'props' => $props,
                 'url' => $request->getRequestUri(),
                 'eager' => true,
             ];
-
-            $page['dialog'][] = $dialog;
-
         } else {
             $page = [
                 'component' => $this->component,
@@ -166,7 +163,7 @@ class Response implements Responsable
                 'url' => $request->getRequestUri(),
                 'version' => $this->version,
                 'type' => $this->dialog ? 'dialog' : 'page',
-                'dialog' => [],
+                'dialog' => null,
                 'context' => $this->context,
             ];
         }
