@@ -143,7 +143,7 @@ class Response implements Responsable
                     return $response;
                 }
 
-                $url = $response->isRedirect() ? $response->getTargetUrl() : $this->basePageUrl;
+                $url = $response->isRedirect() ? $response->getTargetUrl() : null;
             } while ($url);
 
             App::instance('request', $request);
