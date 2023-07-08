@@ -32,12 +32,15 @@ class Middleware
             return md5(config('app.asset_url'));
         }
 
-        if (file_exists($manifest = public_path('mix-manifest.json'))) {
-            return md5_file($manifest);
-        }
+        $manifestPaths = [
+            public_path('mix-manifest.json'),
+            public_path('build/manifest.json')
+        ];
 
-        if (file_exists($manifest = public_path('build/manifest.json'))) {
-            return md5_file($manifest);
+        foreach ($manifestPaths as $manifestPath) {
+            if (file_exists($manifestPath)) {
+                return md5_file($manifestPath);
+            }
         }
 
         return null;
@@ -54,9 +57,7 @@ class Middleware
     public function share(Request $request)
     {
         return [
-            'errors' => function () use ($request) {
-                return $this->resolveValidationErrors($request);
-            },
+            'errors' => fn() => $this->resolveValidationErrors($request),
         ];
     }
 
@@ -82,10 +83,7 @@ class Middleware
      */
     public function handle(Request $request, Closure $next)
     {
-        Inertia::version(function () use ($request) {
-            return $this->version($request);
-        });
-
+        Inertia::version(fn() => $this->version($request));
         Inertia::share($this->share($request));
         Inertia::setRootView($this->rootView($request));
 
