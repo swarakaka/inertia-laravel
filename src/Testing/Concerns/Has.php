@@ -37,7 +37,7 @@ trait Has
 
     /**
      * @param  string  $key
-     * @param  mixed|null  $value
+     * @param mixed $value
      * @param  Closure|null  $scope
      * @return $this
      */

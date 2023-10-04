@@ -75,7 +75,7 @@ class Response implements Responsable
 
     /**
      * @param  string|array  $key
-     * @param  mixed|null  $value
+     * @param mixed $value
      * @return $this
      */
     public function with($key, $value = null): self
@@ -91,7 +91,7 @@ class Response implements Responsable
 
     /**
      * @param  string|array  $key
-     * @param  mixed|null  $value
+     * @param mixed $value
      * @return $this
      */
     public function withViewData($key, $value = null): self
